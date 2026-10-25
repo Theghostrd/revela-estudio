@@ -207,6 +207,11 @@ label{font:500 .75rem var(--f-mono);text-transform:uppercase;letter-spacing:.12e
 input,select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:11px 12px;width:100%}
 textarea{min-height:110px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+form{position:relative}
+.status{grid-column:1/-1;margin:0;padding:14px 16px;border-radius:4px;border:1px solid var(--line);background:var(--paper);font-weight:500}
+.status.ok{border-color:var(--accent);color:var(--ink)}
+.status.err{border-color:var(--accent);color:var(--accent)}
 .out{grid-column:1/-1;border:1px dashed var(--accent);padding:16px;border-radius:4px;display:flex;flex-direction:column;gap:10px}
 .out pre{margin:0;white-space:pre-wrap;font:400 .82rem/1.5 var(--f-mono);color:var(--ink)}
 @media (max-width:820px){.contact{grid-template-columns:1fr}}
@@ -460,7 +465,7 @@ footer{border-top:1px solid var(--line);padding-block:28px 40px;display:flex;jus
     <div class="info">
       <p class="eyebrow">Contacto</p>
       <h2>Cuéntanos qué necesitas.</h2>
-      <p>Llena el formulario y te armamos un resumen listo para enviarnos por WhatsApp o correo. Respondemos en menos de 2 horas, de lunes a sábado.</p>
+      <p>Envía el formulario y te escribimos con una cotización en menos de 2 horas, de lunes a sábado.</p>
       <div class="channel"><span class="eyebrow">WhatsApp</span><span class="v">+1 (555) 014-2290</span></div>
       <div class="channel"><span class="eyebrow">Correo</span><span class="v">hola@revelaestudio.com</span></div>
       <div class="channel"><span class="eyebrow">Instagram</span><span class="v">@revela.estudio</span></div>
@@ -468,7 +473,9 @@ footer{border-top:1px solid var(--line);padding-block:28px 40px;display:flex;jus
 
     <form id="quote" novalidate>
       <div class="field"><label for="f-name">Nombre</label><input id="f-name" name="name" autocomplete="name" placeholder="Ana Pérez" required></div>
-      <div class="field"><label for="f-brand">Marca o negocio</label><input id="f-brand" name="brand" placeholder="Café Tostado"></div>
+      <div class="field"><label for="f-contact">WhatsApp o correo</label><input id="f-contact" name="contact" autocomplete="email" placeholder="ana@correo.com" required></div>
+      <div class="field full"><label for="f-brand">Marca o negocio</label><input id="f-brand" name="brand" placeholder="Café Tostado"></div>
+      <div class="hp" aria-hidden="true"><label for="f-web">No llenar</label><input id="f-web" name="web" tabindex="-1" autocomplete="off"></div>
       <div class="field"><label for="f-svc">Servicio</label>
         <select id="f-svc" name="svc">
           <option>Retoque fotográfico</option>
@@ -482,9 +489,10 @@ footer{border-top:1px solid var(--line);padding-block:28px 40px;display:flex;jus
       </div>
       <div class="field"><label for="f-qty">Cantidad</label><input id="f-qty" name="qty" type="number" min="1" value="1"></div>
       <div class="field full"><label for="f-msg">Detalles</label><textarea id="f-msg" name="msg" placeholder="Necesito 5 fotos de producto con fondo blanco para mi tienda online."></textarea></div>
-      <div class="field full"><button class="btn accent" type="submit" style="justify-self:start">Preparar solicitud</button></div>
+      <div class="field full"><button class="btn accent" type="submit" id="sendBtn" style="justify-self:start">Enviar solicitud</button></div>
+      <p class="status full" id="status" role="status" hidden></p>
       <div class="out" id="out" hidden>
-        <span class="eyebrow">Tu solicitud · cópiala y envíala por WhatsApp o correo</span>
+        <span class="eyebrow">No pudimos enviarla · copia el texto y mándalo por WhatsApp o correo</span>
         <pre id="outText"></pre>
         <button class="btn ghost" type="button" id="copyBtn" style="justify-self:start">Copiar texto</button>
       </div>
@@ -546,18 +554,49 @@ footer{border-top:1px solid var(--line);padding-block:28px 40px;display:flex;jus
   var ba = document.getElementById('ba'), range = document.getElementById('baRange');
   range.addEventListener('input', function(){ ba.style.setProperty('--pos', range.value + '%'); });
 
+  // Supabase: pega aquí la Project URL y la anon / publishable key (nunca la service_role).
+  var SUPABASE_URL = 'PEGA_AQUI_TU_PROJECT_URL';
+  var SUPABASE_KEY = 'PEGA_AQUI_TU_ANON_KEY';
+
   var form = document.getElementById('quote'), out = document.getElementById('out'), outText = document.getElementById('outText');
+  var statusEl = document.getElementById('status'), sendBtn = document.getElementById('sendBtn');
+  function showStatus(msg, kind){ statusEl.textContent = msg; statusEl.className = 'status full ' + kind; statusEl.hidden = false; }
+  function required(input, msg){
+    if (input.value.trim()) { input.removeAttribute('aria-invalid'); return true; }
+    input.setAttribute('aria-invalid','true'); input.placeholder = msg; input.focus(); return false;
+  }
   form.addEventListener('submit', function(e){
     e.preventDefault();
-    var f = form.elements, name = f.name.value.trim();
-    if(!name){ f.name.focus(); f.name.setAttribute('aria-invalid','true'); f.name.placeholder = 'Escribe tu nombre para continuar'; return; }
-    f.name.removeAttribute('aria-invalid');
-    var lines = ['Hola, Revela. Quiero cotizar un trabajo.', '', 'Nombre: ' + name];
-    if (f.brand.value.trim()) lines.push('Marca: ' + f.brand.value.trim());
-    lines.push('Servicio: ' + f.svc.value, 'Cantidad: ' + (f.qty.value || 1));
-    if (f.msg.value.trim()) lines.push('Detalles: ' + f.msg.value.trim());
-    outText.textContent = lines.join('\n');
-    out.hidden = false;
+    var f = form.elements;
+    if (!required(f.name, 'Escribe tu nombre para continuar') || !required(f.contact, 'Escribe tu WhatsApp o correo')) return;
+    if (f.web.value) return; // campo trampa para bots
+    var data = {
+      nombre: f.name.value.trim().slice(0,120),
+      contacto: f.contact.value.trim().slice(0,160),
+      marca: f.brand.value.trim().slice(0,120) || null,
+      servicio: f.svc.value,
+      cantidad: Math.min(1000, Math.max(1, parseInt(f.qty.value, 10) || 1)),
+      detalles: f.msg.value.trim().slice(0,2000) || null
+    };
+    var lines = ['Hola, Revela. Quiero cotizar un trabajo.', '', 'Nombre: ' + data.nombre, 'Contacto: ' + data.contacto];
+    if (data.marca) lines.push('Marca: ' + data.marca);
+    lines.push('Servicio: ' + data.servicio, 'Cantidad: ' + data.cantidad);
+    if (data.detalles) lines.push('Detalles: ' + data.detalles);
+    function fallback(){ outText.textContent = lines.join('\n'); out.hidden = false; }
+
+    out.hidden = true; sendBtn.disabled = true; sendBtn.textContent = 'Enviando…';
+    fetch(SUPABASE_URL.replace(/\/$/, '') + '/rest/v1/solicitudes', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(data)
+    }).then(function(res){
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      form.reset();
+      showStatus('Recibimos tu solicitud, ' + data.nombre + '. Te escribiremos a ' + data.contacto + ' con la cotización.', 'ok');
+    }).catch(function(){
+      showStatus('No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo, o envíanos el texto de abajo.', 'err');
+      fallback();
+    }).then(function(){ sendBtn.disabled = false; sendBtn.textContent = 'Enviar solicitud'; });
   });
   document.getElementById('copyBtn').addEventListener('click', function(){
     var btn = this;
