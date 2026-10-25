@@ -1,4 +1,4 @@
-# Revela Estudio
+# Flowpixel
 
 Página web de un estudio de edición de fotos, anuncios para redes, portadas y piezas gráficas.
 

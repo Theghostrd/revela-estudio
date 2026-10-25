@@ -1,4 +1,4 @@
--- Revela Estudio: tabla de solicitudes de cotización.
+-- Flowpixel: tabla de solicitudes de cotización.
 -- Pega todo esto en Supabase → SQL Editor → New query, y pulsa Run.
 
 create table if not exists public.solicitudes (
