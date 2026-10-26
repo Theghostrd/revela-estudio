@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Flowpixel · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#ECEEF1; --surface:#F7F8FA; --ink:#15171C; --muted:#585F6A; --line:#CBD0D7; --accent:#C81E5B; --accent-ink:#FFFFFF;
+  --ok:#1C7C4A; --warn:#A35F00; --bad:#B42318;
+  --f-display:"Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --f-body:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#101216; --surface:#191C21; --ink:#E8EBEF; --muted:#9AA1AB; --line:#2B2F37; --accent:#FF4D8D; --accent-ink:#14060C;
+  --ok:#4CC38A; --warn:#F5A524; --bad:#FF6B5E; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#101216; --surface:#191C21; --ink:#E8EBEF; --muted:#9AA1AB; --line:#2B2F37; --accent:#FF4D8D; --accent-ink:#14060C;
+  --ok:#4CC38A; --warn:#F5A524; --bad:#FF6B5E; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2{font-family:var(--f-display);letter-spacing:-.02em;margin:0;line-height:1.05}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin-inline:auto}
+.eyebrow{font-family:var(--f-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:var(--muted)}
+.logo{font-family:var(--f-display);font-weight:800;font-size:1.2rem;display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.logo-mark{width:20px;height:20px;position:relative}
+.logo-mark::before,.logo-mark::after{content:"";position:absolute;inset:0;border:2px solid var(--ink);border-radius:50%}
+.logo-mark::after{inset:5px;background:var(--accent);border:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:600 .92rem var(--f-body);padding:10px 16px;border-radius:999px;
+  border:1.5px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.55;cursor:wait}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+input:focus,select:focus{border-color:var(--ink);outline:none}
+.msg{font-size:.9rem;padding:10px 12px;border-radius:10px;border:1px solid var(--line)}
+.msg.err{color:var(--bad);border-color:color-mix(in srgb, var(--bad) 40%, transparent);background:color-mix(in srgb, var(--bad) 8%, transparent)}
+
+/* Login */
+#login{min-height:100dvh;display:grid;place-items:center;padding-block:32px}
+.card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px;display:grid;gap:18px}
+.card h1{font-size:1.8rem}
+.field{display:grid;gap:6px;font-size:.88rem;font-weight:500}
+
+/* Dashboard */
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header.top .who{display:flex;align-items:center;gap:12px;font-size:.88rem;color:var(--muted);min-width:0}
+header.top .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}
+main{padding-block:28px 64px;display:grid;gap:24px}
+.head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
+.head h1{font-size:clamp(1.8rem, 4vw, 2.6rem)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:4px}
+.kpi b{font-family:var(--f-display);font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.kpi.hot{border-color:var(--accent)}
+.kpi.hot b{color:var(--accent)}
+.tools{display:flex;gap:10px;flex-wrap:wrap}
+.tools input{flex:1 1 220px}
+.tools select{flex:0 1 200px}
+.list{display:grid;gap:10px}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;
+  grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,2fr) auto;gap:16px;align-items:start}
+.row .name{font-weight:600}
+.row .sub{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.row .det{font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.row .det:empty::before{content:"Sin detalles";color:var(--muted)}
+.row select{font-size:.85rem;padding:7px 10px}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:999px;
+  border:1px solid currentColor}
+.st-nueva{color:var(--accent)} .st-cotizada{color:var(--warn)} .st-en-curso{color:var(--ink)} .st-entregada{color:var(--ok)} .st-descartada{color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:40px 16px;border:1px dashed var(--line);border-radius:14px}
+@media (max-width: 820px){
+  .row{grid-template-columns:1fr 1fr}
+  .row .det{grid-column:1 / -1}
+  .row .act{grid-column:1 / -1}
+}
+@media (max-width: 480px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<section id="login" hidden>
+  <form class="card" id="login-form" novalidate>
+    <a class="logo" href="index.html"><span class="logo-mark" aria-hidden="true"></span>Flowpixel</a>
+    <div>
+      <p class="eyebrow">Acceso privado</p>
+      <h1>Panel de administración</h1>
+    </div>
+    <label class="field">Correo
+      <input type="email" name="email" autocomplete="username" required>
+    </label>
+    <label class="field">Contraseña
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+    <p class="msg err" id="login-msg" role="alert" hidden></p>
+    <button class="btn accent" type="submit" id="login-btn">Entrar</button>
+  </form>
+</section>
+
+<!-- Dashboard -->
+<div id="app" class="wrap" hidden>
+  <header class="top">
+    <a class="logo" href="index.html"><span class="logo-mark" aria-hidden="true"></span>Flowpixel</a>
+    <div class="who"><span id="who"></span><button class="btn ghost" id="logout">Salir</button></div>
+  </header>
+  <main>
+    <div class="head">
+      <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1>Solicitudes de cotización</h1>
+      </div>
+      <button class="btn ghost" id="refresh">Actualizar</button>
+    </div>
+
+    <section class="kpis" aria-label="Resumen">
+      <div class="kpi hot"><span class="eyebrow">Nuevas</span><b id="k-nueva">–</b></div>
+      <div class="kpi"><span class="eyebrow">Cotizadas</span><b id="k-cotizada">–</b></div>
+      <div class="kpi"><span class="eyebrow">En curso</span><b id="k-en-curso">–</b></div>
+      <div class="kpi"><span class="eyebrow">Entregadas</span><b id="k-entregada">–</b></div>
+      <div class="kpi"><span class="eyebrow">Últimos 30 días</span><b id="k-mes">–</b></div>
+      <div class="kpi"><span class="eyebrow">Total</span><b id="k-total">–</b></div>
+    </section>
+
+    <div class="tools">
+      <input type="search" id="q" placeholder="Buscar por nombre, contacto, marca o detalles" aria-label="Buscar">
+      <select id="f-estado" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        <option value="nueva">Nueva</option>
+        <option value="cotizada">Cotizada</option>
+        <option value="en curso">En curso</option>
+        <option value="entregada">Entregada</option>
+        <option value="descartada">Descartada</option>
+      </select>
+      <button class="btn ghost" id="csv">Exportar CSV</button>
+    </div>
+
+    <p class="msg err" id="app-msg" role="alert" hidden></p>
+    <div class="list" id="list" aria-live="polite"></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+  // Mismos datos que en index.html (clave pública; nunca la service_role).
+  var SUPABASE_URL = 'https://ehrsvjkmoixunmoduhaz.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_Uv_Dhr_pVoB0xaKv2pEVwQ_Jik2orfF';
+  var ESTADOS = ['nueva', 'cotizada', 'en curso', 'entregada', 'descartada'];
+
+  var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var $ = function(id){ return document.getElementById(id); };
+  var datos = [];
+
+  function show(el, text){ el.textContent = text; el.hidden = !text; }
+
+  // ── Sesión ──
+  async function arrancar(){
+    var res = await db.auth.getSession();
+    var session = res.data.session;
+    if (!session) return pantallaLogin();
+    var ok = await db.rpc('es_admin');
+    if (ok.error || ok.data !== true){
+      await db.auth.signOut();
+      pantallaLogin();
+      show($('login-msg'), ok.error ? 'No se pudo verificar tu acceso. Revisa que ejecutaste el SQL del panel.' : 'Esta cuenta no tiene permisos de administrador.');
+      return;
+    }
+    $('who').textContent = session.user.email;
+    $('login').hidden = true;
+    $('app').hidden = false;
+    cargar();
+  }
+
+  function pantallaLogin(){
+    $('app').hidden = true;
+    $('login').hidden = false;
+    $('login-form').email.focus();
+  }
+
+  $('login-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var f = e.target, btn = $('login-btn');
+    show($('login-msg'), '');
+    if (!f.email.value || !f.password.value) return show($('login-msg'), 'Escribe tu correo y contraseña.');
+    btn.disabled = true; btn.textContent = 'Entrando…';
+    var res = await db.auth.signInWithPassword({ email: f.email.value.trim(), password: f.password.value });
+    btn.disabled = false; btn.textContent = 'Entrar';
+    if (res.error) return show($('login-msg'), 'Correo o contraseña incorrectos.');
+    f.password.value = '';
+    arrancar();
+  });
+
+  $('logout').addEventListener('click', async function(){
+    await db.auth.signOut();
+    datos = [];
+    $('list').textContent = '';
+    pantallaLogin();
+  });
+
+  // ── Datos ──
+  async function cargar(){
+    show($('app-msg'), '');
+    $('refresh').disabled = true;
+    var res = await db.from('solicitudes').select('*').order('creada', { ascending: false });
+    $('refresh').disabled = false;
+    if (res.error){
+      if (res.error.code === 'PGRST301' || /JWT/i.test(res.error.message)) return $('logout').click();
+      return show($('app-msg'), 'No se pudieron cargar las solicitudes: ' + res.error.message);
+    }
+    datos = res.data || [];
+    pintarKpis();
+    pintarLista();
+  }
+
+  function pintarKpis(){
+    var hace30 = Date.now() - 30 * 864e5;
+    ESTADOS.forEach(function(s){
+      var el = $('k-' + s.replace(' ', '-'));
+      if (el) el.textContent = datos.filter(function(d){ return d.estado === s; }).length;
+    });
+    $('k-mes').textContent = datos.filter(function(d){ return new Date(d.creada).getTime() >= hace30; }).length;
+    $('k-total').textContent = datos.length;
+  }
+
+  function filtrados(){
+    var q = $('q').value.trim().toLowerCase();
+    var est = $('f-estado').value;
+    return datos.filter(function(d){
+      if (est && d.estado !== est) return false;
+      if (!q) return true;
+      return [d.nombre, d.contacto, d.marca, d.servicio, d.detalles].join(' ').toLowerCase().indexOf(q) !== -1;
+    });
+  }
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  var fmtFecha = new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' });
+
+  function pintarLista(){
+    var list = $('list'), items = filtrados();
+    list.textContent = '';
+    if (!items.length){
+      list.appendChild(el('p', 'empty', datos.length ? 'Ninguna solicitud coincide con el filtro.' : 'Todavía no hay solicitudes.'));
+      return;
+    }
+    items.forEach(function(d){
+      var row = el('article', 'row');
+
+      var a = el('div');
+      a.appendChild(el('p', 'name', d.nombre));
+      a.appendChild(el('p', 'sub', d.contacto));
+      if (d.marca) a.appendChild(el('p', 'sub', d.marca));
+
+      var b = el('div');
+      b.appendChild(el('p', null, d.servicio + ' × ' + d.cantidad));
+      b.appendChild(el('p', 'sub', fmtFecha.format(new Date(d.creada))));
+
+      var c = el('p', 'det', d.detalles || '');
+
+      var act = el('div', 'act');
+      var pill = el('span', 'pill st-' + d.estado.replace(' ', '-'), d.estado);
+      var sel = el('select');
+      sel.setAttribute('aria-label', 'Cambiar estado de ' + d.nombre);
+      ESTADOS.forEach(function(s){
+        var o = el('option', null, s); o.value = s; if (s === d.estado) o.selected = true; sel.appendChild(o);
+      });
+      sel.addEventListener('change', function(){ cambiarEstado(d, sel.value, sel); });
+      act.style.display = 'grid'; act.style.gap = '8px'; act.style.justifyItems = 'start';
+      act.appendChild(pill); act.appendChild(sel);
+
+      row.appendChild(a); row.appendChild(b); row.appendChild(c); row.appendChild(act);
+      list.appendChild(row);
+    });
+  }
+
+  async function cambiarEstado(d, nuevo, sel){
+    var antes = d.estado;
+    sel.disabled = true;
+    var res = await db.from('solicitudes').update({ estado: nuevo }).eq('id', d.id).select('id');
+    sel.disabled = false;
+    if (res.error || !res.data || !res.data.length){
+      sel.value = antes;
+      return show($('app-msg'), 'No se pudo cambiar el estado' + (res.error ? ': ' + res.error.message : '.'));
+    }
+    d.estado = nuevo;
+    pintarKpis();
+    pintarLista();
+  }
+
+  function exportarCsv(){
+    var cols = ['id', 'creada', 'nombre', 'contacto', 'marca', 'servicio', 'cantidad', 'detalles', 'estado'];
+    var esc = function(v){ v = v == null ? '' : String(v); return '"' + v.replace(/"/g, '""') + '"'; };
+    var lineas = [cols.join(',')].concat(filtrados().map(function(d){ return cols.map(function(c){ return esc(d[c]); }).join(','); }));
+    var blob = new Blob(['﻿' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'solicitudes-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  $('q').addEventListener('input', pintarLista);
+  $('f-estado').addEventListener('change', pintarLista);
+  $('refresh').addEventListener('click', cargar);
+  $('csv').addEventListener('click', exportarCsv);
+
+  arrancar();
+})();
+</script>
+</body>
+</html>
