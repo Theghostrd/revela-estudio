@@ -31,6 +31,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);line-height:1.5;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
 h1,h2{font-family:var(--f-display);letter-spacing:-.02em;margin:0;line-height:1.05}
@@ -47,10 +48,12 @@ p{margin:0}
 .btn.ghost{background:transparent;color:var(--ink)}
 .btn.accent{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .btn:disabled{opacity:.55;cursor:wait}
+.btn.sm{padding:6px 12px;font-size:.82rem}
 input,select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
 input:focus,select:focus{border-color:var(--ink);outline:none}
 .msg{font-size:.9rem;padding:10px 12px;border-radius:10px;border:1px solid var(--line)}
 .msg.err{color:var(--bad);border-color:color-mix(in srgb, var(--bad) 40%, transparent);background:color-mix(in srgb, var(--bad) 8%, transparent)}
+.msg.ok{color:var(--ok);border-color:color-mix(in srgb, var(--ok) 40%, transparent);background:color-mix(in srgb, var(--ok) 8%, transparent)}
 
 /* Login */
 #login{min-height:100dvh;display:grid;place-items:center;padding-block:32px}
@@ -73,32 +76,106 @@ header.top .who span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;m
 main{padding-block:28px 64px;display:grid;gap:24px}
 .head{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap}
 .head h1{font-size:clamp(1.8rem, 4vw, 2.6rem)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 14px;font:600 .92rem var(--f-body);color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.view{display:grid;gap:20px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:12px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:4px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:4px;align-content:start;
+  font:inherit;color:inherit;text-align:left}
+button.kpi{cursor:pointer}
+button.kpi:hover{border-color:var(--ink)}
 .kpi b{font-family:var(--f-display);font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.kpi small{font-size:.78rem;color:var(--muted)}
 .kpi.hot{border-color:var(--accent)}
 .kpi.hot b{color:var(--accent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr));gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;align-content:start;min-width:0}
+.panel.wide{grid-column:1 / -1}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.panel h2{font-size:1.15rem}
+.note{font-size:.82rem;color:var(--muted)}
+
+/* Gráfico semanal */
+.wk{position:relative;height:200px;display:grid;grid-template-columns:repeat(12, minmax(0,1fr));gap:2px;align-items:end;border-bottom:1px solid var(--line);padding-top:18px}
+.wk-max{position:absolute;top:18px;left:0;right:0;border-top:1px dashed var(--line);pointer-events:none}
+.wk-max span{position:absolute;top:-17px;left:0;font:500 .7rem var(--f-mono);color:var(--muted)}
+.wk .col{height:100%;display:flex;align-items:end;cursor:default;position:relative}
+.wk .bar{width:100%;background:var(--accent);border-radius:4px 4px 0 0;transition:opacity .15s}
+.wk .bar.zero{background:var(--line);border-radius:0}
+.wk:hover .col:not(:hover) .bar{opacity:.45}
+.wk-x{display:grid;grid-template-columns:repeat(12, minmax(0,1fr));gap:2px;font:500 .68rem var(--f-mono);color:var(--muted);text-align:center;margin-top:-8px}
+.tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--paper);font-size:.8rem;line-height:1.35;padding:7px 10px;border-radius:8px;max-width:220px}
+.tip b{font-variant-numeric:tabular-nums}
+
+/* Barras horizontales */
+.hb{display:grid;grid-template-columns:minmax(80px, max-content) minmax(0,1fr) max-content;gap:10px 12px;align-items:center;font-size:.88rem}
+.hb .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-transform:capitalize}
+.hb .track{height:10px;background:color-mix(in srgb, var(--line) 55%, transparent);border-radius:999px;overflow:hidden}
+.hb .fill{height:100%;background:var(--accent);border-radius:999px}
+.hb .val{font-variant-numeric:tabular-nums;color:var(--muted);text-align:right}
+.hb .val b{color:var(--ink);font-weight:600}
+.fill.st-nueva{background:var(--accent)} .fill.st-cotizada{background:var(--warn)} .fill.st-en-curso{background:var(--ink)}
+.fill.st-entregada{background:var(--ok)} .fill.st-descartada{background:var(--muted)}
+.pend{display:grid;gap:8px}
+.pend button{font:inherit;color:inherit;background:transparent;text-align:left;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;
+  padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.pend button:hover{border-color:var(--ink)}
+.pend .sub{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+.pend .age{font:500 .78rem var(--f-mono);color:var(--accent);align-self:center;grid-row:1 / span 2;grid-column:2}
+.mini-empty{font-size:.88rem;color:var(--muted)}
+
+/* Solicitudes */
 .tools{display:flex;gap:10px;flex-wrap:wrap}
 .tools input{flex:1 1 220px}
-.tools select{flex:0 1 200px}
+.tools select{flex:1 1 150px}
+.count{font-size:.85rem;color:var(--muted)}
 .list{display:grid;gap:10px}
 .row{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;
   grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,2fr) auto;gap:16px;align-items:start}
+.row.flash{border-color:var(--accent)}
 .row .name{font-weight:600}
 .row .sub{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
 .row .det{font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}
 .row .det:empty::before{content:"Sin detalles";color:var(--muted)}
 .row select{font-size:.85rem;padding:7px 10px}
+.act{display:grid;gap:8px;justify-items:start}
+.links{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{font:600 .78rem var(--f-body);padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);text-decoration:none;cursor:pointer}
+.chip:hover{border-color:var(--ink)}
+.notes{grid-column:1 / -1;border-top:1px solid var(--line);padding-top:10px}
+.notes summary{cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted)}
+.notes summary .has{color:var(--accent)}
+.notes[open] summary{margin-bottom:8px}
+.notes-box{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+textarea{font:inherit;font-size:.9rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-height:80px;resize:vertical}
+textarea:focus{border-color:var(--ink);outline:none}
+.notes-bar{display:flex;align-items:center;gap:10px}
+.saved{font-size:.8rem;color:var(--ok)}
+.saved.err{color:var(--bad)}
 .pill{display:inline-block;font-family:var(--f-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:999px;
   border:1px solid currentColor}
 .st-nueva{color:var(--accent)} .st-cotizada{color:var(--warn)} .st-en-curso{color:var(--ink)} .st-entregada{color:var(--ok)} .st-descartada{color:var(--muted)}
 .empty{text-align:center;color:var(--muted);padding:40px 16px;border:1px dashed var(--line);border-radius:14px}
+
+/* Equipo */
+.add-admin{display:flex;gap:10px;flex-wrap:wrap}
+.add-admin input{flex:1 1 240px}
+.admins{display:grid;gap:8px}
+.admin{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;flex-wrap:wrap}
+.admin .mail{font-weight:600;overflow-wrap:anywhere}
+.admin .sub{font-size:.82rem;color:var(--muted)}
+
 @media (max-width: 820px){
   .row{grid-template-columns:1fr 1fr}
   .row .det{grid-column:1 / -1}
   .row .act{grid-column:1 / -1}
 }
-@media (max-width: 480px){.row{grid-template-columns:1fr}}
+@media (max-width: 480px){
+  .row{grid-template-columns:1fr}
+  .wk-x span:nth-child(even){visibility:hidden}
+}
 </style>
 </head>
 <body>
@@ -148,31 +225,99 @@ main{padding-block:28px 64px;display:grid;gap:24px}
       <button class="btn ghost" id="refresh">Actualizar</button>
     </div>
 
-    <section class="kpis" aria-label="Resumen">
-      <div class="kpi hot"><span class="eyebrow">Nuevas</span><b id="k-nueva">–</b></div>
-      <div class="kpi"><span class="eyebrow">Cotizadas</span><b id="k-cotizada">–</b></div>
-      <div class="kpi"><span class="eyebrow">En curso</span><b id="k-en-curso">–</b></div>
-      <div class="kpi"><span class="eyebrow">Entregadas</span><b id="k-entregada">–</b></div>
-      <div class="kpi"><span class="eyebrow">Últimos 30 días</span><b id="k-mes">–</b></div>
-      <div class="kpi"><span class="eyebrow">Total</span><b id="k-total">–</b></div>
-    </section>
-
-    <div class="tools">
-      <input type="search" id="q" placeholder="Buscar por nombre, contacto, marca o detalles" aria-label="Buscar">
-      <select id="f-estado" aria-label="Filtrar por estado">
-        <option value="">Todos los estados</option>
-        <option value="nueva">Nueva</option>
-        <option value="cotizada">Cotizada</option>
-        <option value="en curso">En curso</option>
-        <option value="entregada">Entregada</option>
-        <option value="descartada">Descartada</option>
-      </select>
-      <button class="btn ghost" id="csv">Exportar CSV</button>
-    </div>
+    <nav class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab" role="tab" id="tab-resumen" aria-controls="v-resumen" data-tab="resumen">Resumen</button>
+      <button class="tab" role="tab" id="tab-solicitudes" aria-controls="v-solicitudes" data-tab="solicitudes">Solicitudes</button>
+      <button class="tab" role="tab" id="tab-equipo" aria-controls="v-equipo" data-tab="equipo">Equipo</button>
+    </nav>
 
     <p class="msg err" id="app-msg" role="alert" hidden></p>
-    <div class="list" id="list" aria-live="polite"></div>
+
+    <!-- Resumen -->
+    <section class="view" id="v-resumen" role="tabpanel" aria-labelledby="tab-resumen">
+      <div class="kpis">
+        <button class="kpi hot" data-ir="nueva"><span class="eyebrow">Nuevas</span><b id="k-nueva">–</b><small>sin atender</small></button>
+        <button class="kpi" data-ir="cotizada"><span class="eyebrow">Cotizadas</span><b id="k-cotizada">–</b><small>esperando respuesta</small></button>
+        <button class="kpi" data-ir="en curso"><span class="eyebrow">En curso</span><b id="k-en-curso">–</b><small>en producción</small></button>
+        <button class="kpi" data-ir="entregada"><span class="eyebrow">Entregadas</span><b id="k-entregada">–</b><small id="k-tasa">–</small></button>
+        <div class="kpi"><span class="eyebrow">Esta semana</span><b id="k-semana">–</b><small id="k-semana-cmp">–</small></div>
+        <div class="kpi"><span class="eyebrow">Últimos 30 días</span><b id="k-mes">–</b><small id="k-total">–</small></div>
+      </div>
+
+      <div class="grid2">
+        <article class="panel wide">
+          <div class="panel-head">
+            <h2>Solicitudes por semana</h2>
+            <span class="note">Últimas 12 semanas</span>
+          </div>
+          <div class="wk" id="wk" aria-hidden="true"></div>
+          <div class="wk-x" id="wk-x" aria-hidden="true"></div>
+          <table class="sr-only" id="wk-table"></table>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><h2>Por servicio</h2><span class="note">Todas las solicitudes</span></div>
+          <div class="hb" id="by-servicio"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head"><h2>Por estado</h2><span class="note" id="piezas"></span></div>
+          <div class="hb" id="by-estado"></div>
+        </article>
+
+        <article class="panel wide">
+          <div class="panel-head"><h2>Nuevas más antiguas</h2><span class="note">Responde primero a estas</span></div>
+          <div class="pend" id="pend"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Solicitudes -->
+    <section class="view" id="v-solicitudes" role="tabpanel" aria-labelledby="tab-solicitudes" hidden>
+      <div class="tools">
+        <input type="search" id="q" placeholder="Buscar por nombre, contacto, marca, detalles o notas" aria-label="Buscar">
+        <select id="f-estado" aria-label="Filtrar por estado">
+          <option value="">Todos los estados</option>
+          <option value="nueva">Nueva</option>
+          <option value="cotizada">Cotizada</option>
+          <option value="en curso">En curso</option>
+          <option value="entregada">Entregada</option>
+          <option value="descartada">Descartada</option>
+        </select>
+        <select id="f-servicio" aria-label="Filtrar por servicio"><option value="">Todos los servicios</option></select>
+        <select id="f-periodo" aria-label="Filtrar por fecha">
+          <option value="">Cualquier fecha</option>
+          <option value="7">Últimos 7 días</option>
+          <option value="30">Últimos 30 días</option>
+          <option value="90">Últimos 90 días</option>
+        </select>
+        <select id="f-orden" aria-label="Ordenar">
+          <option value="desc">Más recientes</option>
+          <option value="asc">Más antiguas</option>
+          <option value="cant">Mayor cantidad</option>
+        </select>
+        <button class="btn ghost" id="limpiar">Limpiar</button>
+        <button class="btn ghost" id="csv">Exportar CSV</button>
+      </div>
+      <p class="count" id="count"></p>
+      <div class="list" id="list" aria-live="polite"></div>
+    </section>
+
+    <!-- Equipo -->
+    <section class="view" id="v-equipo" role="tabpanel" aria-labelledby="tab-equipo" hidden>
+      <article class="panel">
+        <div class="panel-head"><h2>Administradores</h2></div>
+        <p class="note">Primero crea el usuario en Supabase → Authentication → Users (marca <i>Auto Confirm User</i>). Después escribe aquí su correo para darle acceso al panel.</p>
+        <form class="add-admin" id="add-admin" novalidate>
+          <input type="email" name="email" placeholder="correo@ejemplo.com" aria-label="Correo del nuevo administrador" required>
+          <button class="btn accent" type="submit">Dar acceso</button>
+        </form>
+        <p class="msg" id="team-msg" role="status" hidden></p>
+        <div class="admins" id="admins"></div>
+      </article>
+    </section>
   </main>
+  <div class="tip" id="tip" hidden></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
@@ -182,12 +327,29 @@ main{padding-block:28px 64px;display:grid;gap:24px}
   var SUPABASE_URL = 'https://ehrsvjkmoixunmoduhaz.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_Uv_Dhr_pVoB0xaKv2pEVwQ_Jik2orfF';
   var ESTADOS = ['nueva', 'cotizada', 'en curso', 'entregada', 'descartada'];
+  var DIA = 864e5;
 
   var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var $ = function(id){ return document.getElementById(id); };
   var datos = [];
+  var miId = null;
 
-  function show(el, text){ el.textContent = text; el.hidden = !text; }
+  function show(el, text, tipo){
+    el.textContent = text || '';
+    el.hidden = !text;
+    if (tipo) el.className = 'msg ' + tipo;
+  }
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  var fmtFecha = new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' });
+  var fmtCorta = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short' });
+  var claseEstado = function(s){ return 'st-' + s.replace(' ', '-'); };
 
   // ── Sesión ──
   async function arrancar(){
@@ -201,9 +363,11 @@ main{padding-block:28px 64px;display:grid;gap:24px}
       show($('login-msg'), ok.error ? 'No se pudo verificar tu acceso. Revisa que ejecutaste el SQL del panel.' : 'Esta cuenta no tiene permisos de administrador.');
       return;
     }
+    miId = session.user.id;
     $('who').textContent = session.user.email;
     $('login').hidden = true;
     $('app').hidden = false;
+    abrirTab(tabGuardada());
     cargar();
   }
 
@@ -229,8 +393,38 @@ main{padding-block:28px 64px;display:grid;gap:24px}
   $('logout').addEventListener('click', async function(){
     await db.auth.signOut();
     datos = [];
+    miId = null;
     $('list').textContent = '';
+    $('admins').textContent = '';
     pantallaLogin();
+  });
+
+  // ── Pestañas ──
+  var TABS = ['resumen', 'solicitudes', 'equipo'];
+  function tabGuardada(){
+    try { var t = localStorage.getItem('flowpixel-admin-tab'); if (TABS.indexOf(t) !== -1) return t; } catch (e) {}
+    return 'resumen';
+  }
+  function abrirTab(nombre){
+    TABS.forEach(function(t){
+      $('tab-' + t).setAttribute('aria-selected', t === nombre ? 'true' : 'false');
+      $('v-' + t).hidden = t !== nombre;
+    });
+    try { localStorage.setItem('flowpixel-admin-tab', nombre); } catch (e) {}
+    if (nombre === 'equipo') cargarAdmins();
+  }
+  document.querySelectorAll('.tab').forEach(function(b){
+    b.addEventListener('click', function(){ abrirTab(b.dataset.tab); });
+  });
+
+  // Las tarjetas de estado llevan a la lista ya filtrada.
+  document.querySelectorAll('[data-ir]').forEach(function(b){
+    b.addEventListener('click', function(){
+      limpiarFiltros();
+      $('f-estado').value = b.dataset.ir;
+      pintarLista();
+      abrirTab('solicitudes');
+    });
   });
 
   // ── Datos ──
@@ -244,53 +438,233 @@ main{padding-block:28px 64px;display:grid;gap:24px}
       return show($('app-msg'), 'No se pudieron cargar las solicitudes: ' + res.error.message);
     }
     datos = res.data || [];
-    pintarKpis();
+    llenarServicios();
+    pintarResumen();
     pintarLista();
   }
 
-  function pintarKpis(){
-    var hace30 = Date.now() - 30 * 864e5;
+  function contar(lista, campo){
+    var m = {};
+    lista.forEach(function(d){ var k = d[campo] || '—'; m[k] = (m[k] || 0) + 1; });
+    return m;
+  }
+
+  // ── Resumen ──
+  function inicioSemana(fecha){
+    var d = new Date(fecha);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // lunes
+    return d;
+  }
+
+  function pintarResumen(){
+    var ahora = Date.now();
+    var porEstado = contar(datos, 'estado');
     ESTADOS.forEach(function(s){
-      var el = $('k-' + s.replace(' ', '-'));
-      if (el) el.textContent = datos.filter(function(d){ return d.estado === s; }).length;
+      var k = $('k-' + s.replace(' ', '-'));
+      if (k) k.textContent = porEstado[s] || 0;
     });
-    $('k-mes').textContent = datos.filter(function(d){ return new Date(d.creada).getTime() >= hace30; }).length;
-    $('k-total').textContent = datos.length;
+
+    var total = datos.length;
+    var entregadas = porEstado['entregada'] || 0;
+    $('k-tasa').textContent = total ? Math.round(entregadas / total * 100) + '% del total' : 'sin datos';
+    $('k-mes').textContent = datos.filter(function(d){ return new Date(d.creada).getTime() >= ahora - 30 * DIA; }).length;
+    $('k-total').textContent = total + ' en total';
+
+    // Semanas: índice 0 = esta semana, 11 = hace 11 semanas.
+    var lunes = inicioSemana(ahora);
+    var semanas = [];
+    for (var i = 11; i >= 0; i--){
+      var ini = new Date(lunes); ini.setDate(ini.getDate() - i * 7);
+      semanas.push({ ini: ini, n: 0 });
+    }
+    datos.forEach(function(d){
+      var idx = Math.round((lunes - inicioSemana(d.creada)) / (7 * DIA));
+      if (idx >= 0 && idx < 12) semanas[11 - idx].n++;
+    });
+    var estaSemana = semanas[11].n, anterior = semanas[10].n;
+    $('k-semana').textContent = estaSemana;
+    var dif = estaSemana - anterior;
+    $('k-semana-cmp').textContent = dif === 0 ? 'igual que la anterior' : (dif > 0 ? '+' : '−') + Math.abs(dif) + ' vs. la anterior (' + anterior + ')';
+    pintarSemanas(semanas);
+
+    // Por servicio
+    var porServicio = contar(datos, 'servicio');
+    var servicios = Object.keys(porServicio).sort(function(a, b){ return porServicio[b] - porServicio[a]; });
+    barras($('by-servicio'), servicios.map(function(s){ return { lab: s, n: porServicio[s] }; }), total);
+
+    // Por estado
+    barras($('by-estado'), ESTADOS.map(function(s){ return { lab: s, n: porEstado[s] || 0, cls: claseEstado(s) }; }), total);
+    var piezas = datos.reduce(function(a, d){ return a + (d.cantidad || 0); }, 0);
+    $('piezas').textContent = piezas + (piezas === 1 ? ' pieza pedida' : ' piezas pedidas');
+
+    // Nuevas más antiguas
+    var pend = $('pend');
+    pend.textContent = '';
+    var nuevas = datos.filter(function(d){ return d.estado === 'nueva'; })
+      .sort(function(a, b){ return new Date(a.creada) - new Date(b.creada); }).slice(0, 5);
+    if (!nuevas.length) pend.appendChild(el('p', 'mini-empty', 'No hay solicitudes nuevas pendientes.'));
+    nuevas.forEach(function(d){
+      var dias = Math.floor((ahora - new Date(d.creada).getTime()) / DIA);
+      var b = el('button');
+      b.type = 'button';
+      b.appendChild(el('span', null, d.nombre));
+      b.appendChild(el('span', 'age', dias === 0 ? 'hoy' : 'hace ' + dias + (dias === 1 ? ' día' : ' días')));
+      b.appendChild(el('span', 'sub', d.servicio + ' × ' + d.cantidad + ' · ' + d.contacto));
+      b.addEventListener('click', function(){ irASolicitud(d.id); });
+      pend.appendChild(b);
+    });
+  }
+
+  function pintarSemanas(semanas){
+    var wk = $('wk'), x = $('wk-x'), tabla = $('wk-table');
+    wk.textContent = ''; x.textContent = ''; tabla.textContent = '';
+    var max = Math.max.apply(null, semanas.map(function(s){ return s.n; }));
+    var tope = Math.max(1, max);
+
+    var linea = el('div', 'wk-max');
+    linea.appendChild(el('span', null, String(max)));
+    wk.appendChild(linea);
+
+    var cap = el('caption', null, 'Solicitudes por semana');
+    tabla.appendChild(cap);
+    semanas.forEach(function(s, i){
+      var col = el('div', 'col');
+      var bar = el('div', 'bar' + (s.n ? '' : ' zero'));
+      bar.style.height = s.n ? (s.n / tope * 100) + '%' : '2px';
+      col.appendChild(bar);
+      var fin = new Date(s.ini); fin.setDate(fin.getDate() + 6);
+      var texto = (i === 11 ? 'Esta semana' : fmtCorta.format(s.ini) + ' – ' + fmtCorta.format(fin));
+      col.addEventListener('mouseenter', function(e){ tip(e, texto, s.n); });
+      col.addEventListener('mousemove', moverTip);
+      col.addEventListener('mouseleave', ocultarTip);
+      wk.appendChild(col);
+      x.appendChild(el('span', null, i === 11 ? 'hoy' : fmtCorta.format(s.ini)));
+
+      var tr = el('tr');
+      tr.appendChild(el('th', null, texto));
+      tr.appendChild(el('td', null, String(s.n)));
+      tabla.appendChild(tr);
+    });
+  }
+
+  function barras(cont, filas, total){
+    cont.textContent = '';
+    if (!total){ cont.appendChild(el('p', 'mini-empty', 'Todavía no hay solicitudes.')); return; }
+    var max = Math.max.apply(null, filas.map(function(f){ return f.n; })) || 1;
+    filas.forEach(function(f){
+      cont.appendChild(el('span', 'lab', f.lab));
+      var track = el('div', 'track');
+      var fill = el('div', 'fill' + (f.cls ? ' ' + f.cls : ''));
+      fill.style.width = f.n ? Math.max(2, f.n / max * 100) + '%' : '0';
+      track.appendChild(fill);
+      cont.appendChild(track);
+      var val = el('span', 'val');
+      val.appendChild(el('b', null, String(f.n)));
+      val.appendChild(document.createTextNode(' · ' + Math.round(f.n / total * 100) + '%'));
+      cont.appendChild(val);
+    });
+  }
+
+  // Tooltip del gráfico semanal
+  var tipEl = $('tip');
+  function tip(e, titulo, n){
+    tipEl.textContent = '';
+    tipEl.appendChild(el('div', null, titulo));
+    var b = el('b', null, n + (n === 1 ? ' solicitud' : ' solicitudes'));
+    tipEl.appendChild(b);
+    tipEl.hidden = false;
+    moverTip(e);
+  }
+  function moverTip(e){
+    var w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+    var left = Math.min(window.innerWidth - w - 8, Math.max(8, e.clientX - w / 2));
+    tipEl.style.left = left + 'px';
+    tipEl.style.top = Math.max(8, e.clientY - h - 12) + 'px';
+  }
+  function ocultarTip(){ tipEl.hidden = true; }
+
+  // ── Solicitudes ──
+  function llenarServicios(){
+    var sel = $('f-servicio'), actual = sel.value;
+    var servicios = Object.keys(contar(datos, 'servicio')).sort();
+    while (sel.options.length > 1) sel.remove(1);
+    servicios.forEach(function(s){ var o = el('option', null, s); o.value = s; sel.appendChild(o); });
+    if (servicios.indexOf(actual) !== -1) sel.value = actual;
+  }
+
+  function limpiarFiltros(){
+    $('q').value = ''; $('f-estado').value = ''; $('f-servicio').value = ''; $('f-periodo').value = ''; $('f-orden').value = 'desc';
   }
 
   function filtrados(){
     var q = $('q').value.trim().toLowerCase();
-    var est = $('f-estado').value;
-    return datos.filter(function(d){
+    var est = $('f-estado').value, serv = $('f-servicio').value, dias = +$('f-periodo').value, orden = $('f-orden').value;
+    var desde = dias ? Date.now() - dias * DIA : 0;
+    var lista = datos.filter(function(d){
       if (est && d.estado !== est) return false;
+      if (serv && d.servicio !== serv) return false;
+      if (desde && new Date(d.creada).getTime() < desde) return false;
       if (!q) return true;
-      return [d.nombre, d.contacto, d.marca, d.servicio, d.detalles].join(' ').toLowerCase().indexOf(q) !== -1;
+      return [d.nombre, d.contacto, d.marca, d.servicio, d.detalles, d.notas].join(' ').toLowerCase().indexOf(q) !== -1;
     });
+    lista.sort(function(a, b){
+      if (orden === 'cant') return b.cantidad - a.cantidad;
+      var diff = new Date(a.creada) - new Date(b.creada);
+      return orden === 'asc' ? diff : -diff;
+    });
+    return lista;
   }
 
-  function el(tag, cls, text){
-    var n = document.createElement(tag);
-    if (cls) n.className = cls;
-    if (text != null) n.textContent = text;
-    return n;
+  // Convierte el contacto en enlaces de correo o WhatsApp.
+  function enlacesContacto(contacto){
+    var out = [];
+    var mail = contacto.match(/[^\s@]+@[^\s@]+\.[^\s@]+/);
+    if (mail) out.push({ txt: 'Correo', href: 'mailto:' + mail[0] });
+    var tel = contacto.replace(/[^\d+]/g, '');
+    var digitos = tel.replace(/\D/g, '');
+    if (!mail && digitos.length >= 7){
+      if (digitos.length === 10 && /^8[024]9/.test(digitos)) digitos = '1' + digitos; // República Dominicana
+      out.push({ txt: 'WhatsApp', href: 'https://wa.me/' + digitos });
+      out.push({ txt: 'Llamar', href: 'tel:' + tel });
+    }
+    return out;
   }
-
-  var fmtFecha = new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' });
 
   function pintarLista(){
     var list = $('list'), items = filtrados();
     list.textContent = '';
+    $('count').textContent = datos.length ? 'Mostrando ' + items.length + ' de ' + datos.length : '';
     if (!items.length){
       list.appendChild(el('p', 'empty', datos.length ? 'Ninguna solicitud coincide con el filtro.' : 'Todavía no hay solicitudes.'));
       return;
     }
     items.forEach(function(d){
       var row = el('article', 'row');
+      row.id = 'sol-' + d.id;
 
       var a = el('div');
       a.appendChild(el('p', 'name', d.nombre));
       a.appendChild(el('p', 'sub', d.contacto));
       if (d.marca) a.appendChild(el('p', 'sub', d.marca));
+      var links = el('div', 'links');
+      enlacesContacto(d.contacto).forEach(function(l){
+        var lk = el('a', 'chip', l.txt);
+        lk.href = l.href;
+        if (/^https:/.test(l.href)){ lk.target = '_blank'; lk.rel = 'noopener'; }
+        links.appendChild(lk);
+      });
+      var copiar = el('button', 'chip', 'Copiar');
+      copiar.type = 'button';
+      copiar.addEventListener('click', function(){
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(d.contacto).then(function(){
+          copiar.textContent = 'Copiado';
+          setTimeout(function(){ copiar.textContent = 'Copiar'; }, 1500);
+        });
+      });
+      links.appendChild(copiar);
+      a.appendChild(links);
 
       var b = el('div');
       b.appendChild(el('p', null, d.servicio + ' × ' + d.cantidad));
@@ -299,19 +673,72 @@ main{padding-block:28px 64px;display:grid;gap:24px}
       var c = el('p', 'det', d.detalles || '');
 
       var act = el('div', 'act');
-      var pill = el('span', 'pill st-' + d.estado.replace(' ', '-'), d.estado);
+      var pill = el('span', 'pill ' + claseEstado(d.estado), d.estado);
       var sel = el('select');
       sel.setAttribute('aria-label', 'Cambiar estado de ' + d.nombre);
       ESTADOS.forEach(function(s){
         var o = el('option', null, s); o.value = s; if (s === d.estado) o.selected = true; sel.appendChild(o);
       });
       sel.addEventListener('change', function(){ cambiarEstado(d, sel.value, sel); });
-      act.style.display = 'grid'; act.style.gap = '8px'; act.style.justifyItems = 'start';
       act.appendChild(pill); act.appendChild(sel);
 
       row.appendChild(a); row.appendChild(b); row.appendChild(c); row.appendChild(act);
+
+      // Notas internas (solo si la columna existe en Supabase).
+      if ('notas' in d) row.appendChild(cajaNotas(d));
+
       list.appendChild(row);
     });
+  }
+
+  function cajaNotas(d){
+    var det = el('details', 'notes');
+    var sum = el('summary');
+    function pintarResumenNota(){
+      sum.textContent = 'Notas internas';
+      if (d.notas) sum.appendChild(el('span', 'has', ' · tiene nota'));
+    }
+    pintarResumenNota();
+    det.appendChild(sum);
+    var box = el('div', 'notes-box');
+    var ta = el('textarea');
+    ta.value = d.notas || '';
+    ta.maxLength = 2000;
+    ta.placeholder = 'Precio cotizado, fecha de entrega, lo que hablaste con el cliente…';
+    ta.setAttribute('aria-label', 'Notas internas de ' + d.nombre);
+    var bar = el('div', 'notes-bar');
+    var btn = el('button', 'btn sm', 'Guardar nota');
+    btn.type = 'button';
+    var estado = el('span', 'saved');
+    btn.addEventListener('click', async function(){
+      btn.disabled = true; estado.textContent = ''; estado.className = 'saved';
+      var texto = ta.value.trim() || null;
+      var res = await db.from('solicitudes').update({ notas: texto }).eq('id', d.id).select('id');
+      btn.disabled = false;
+      if (res.error || !res.data || !res.data.length){
+        estado.className = 'saved err';
+        estado.textContent = 'No se pudo guardar' + (res.error ? ': ' + res.error.message : '.');
+        return;
+      }
+      d.notas = texto;
+      estado.textContent = 'Guardada';
+      pintarResumenNota();
+    });
+    bar.appendChild(btn); bar.appendChild(estado);
+    box.appendChild(ta); box.appendChild(bar);
+    det.appendChild(box);
+    return det;
+  }
+
+  function irASolicitud(id){
+    limpiarFiltros();
+    pintarLista();
+    abrirTab('solicitudes');
+    var row = $('sol-' + id);
+    if (!row) return;
+    row.classList.add('flash');
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(function(){ row.classList.remove('flash'); }, 2500);
   }
 
   async function cambiarEstado(d, nuevo, sel){
@@ -324,12 +751,12 @@ main{padding-block:28px 64px;display:grid;gap:24px}
       return show($('app-msg'), 'No se pudo cambiar el estado' + (res.error ? ': ' + res.error.message : '.'));
     }
     d.estado = nuevo;
-    pintarKpis();
+    pintarResumen();
     pintarLista();
   }
 
   function exportarCsv(){
-    var cols = ['id', 'creada', 'nombre', 'contacto', 'marca', 'servicio', 'cantidad', 'detalles', 'estado'];
+    var cols = ['id', 'creada', 'nombre', 'contacto', 'marca', 'servicio', 'cantidad', 'detalles', 'estado', 'notas'];
     var esc = function(v){ v = v == null ? '' : String(v); return '"' + v.replace(/"/g, '""') + '"'; };
     var lineas = [cols.join(',')].concat(filtrados().map(function(d){ return cols.map(function(c){ return esc(d[c]); }).join(','); }));
     var blob = new Blob(['﻿' + lineas.join('\r\n')], { type: 'text/csv;charset=utf-8' });
@@ -340,10 +767,66 @@ main{padding-block:28px 64px;display:grid;gap:24px}
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
   }
 
-  $('q').addEventListener('input', pintarLista);
-  $('f-estado').addEventListener('change', pintarLista);
-  $('refresh').addEventListener('click', cargar);
+  ['q'].forEach(function(id){ $(id).addEventListener('input', pintarLista); });
+  ['f-estado', 'f-servicio', 'f-periodo', 'f-orden'].forEach(function(id){ $(id).addEventListener('change', pintarLista); });
+  $('limpiar').addEventListener('click', function(){ limpiarFiltros(); pintarLista(); });
+  $('refresh').addEventListener('click', function(){ cargar(); if (!$('v-equipo').hidden) cargarAdmins(); });
   $('csv').addEventListener('click', exportarCsv);
+
+  // ── Equipo (administradores) ──
+  var SIN_SQL = 'Falta ejecutar en Supabase el bloque "Funciones extra del panel" de supabase.sql.';
+
+  async function cargarAdmins(){
+    var cont = $('admins');
+    var res = await db.rpc('listar_admins');
+    cont.textContent = '';
+    if (res.error){
+      var falta = /function|could not find/i.test(res.error.message);
+      return show($('team-msg'), falta ? SIN_SQL : 'No se pudo cargar el equipo: ' + res.error.message, 'err');
+    }
+    (res.data || []).forEach(function(a){
+      var fila = el('div', 'admin');
+      var info = el('div');
+      info.appendChild(el('p', 'mail', a.email));
+      info.appendChild(el('p', 'sub', 'Administrador desde ' + fmtCorta.format(new Date(a.creado))));
+      fila.appendChild(info);
+      if (a.user_id === miId){
+        fila.appendChild(el('span', 'pill st-entregada', 'Tú'));
+      } else {
+        var quitar = el('button', 'btn ghost sm', 'Quitar acceso');
+        quitar.type = 'button';
+        quitar.addEventListener('click', function(){ quitarAdmin(a, quitar); });
+        fila.appendChild(quitar);
+      }
+      cont.appendChild(fila);
+    });
+  }
+
+  $('add-admin').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var f = e.target, correo = f.email.value.trim(), btn = f.querySelector('button');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return show($('team-msg'), 'Escribe un correo válido.', 'err');
+    btn.disabled = true;
+    var res = await db.rpc('agregar_admin', { correo: correo });
+    btn.disabled = false;
+    if (res.error){
+      var falta = /could not find the function/i.test(res.error.message);
+      return show($('team-msg'), falta ? SIN_SQL : res.error.message, 'err');
+    }
+    f.email.value = '';
+    show($('team-msg'), correo + ' ya tiene acceso al panel.', 'ok');
+    cargarAdmins();
+  });
+
+  async function quitarAdmin(a, btn){
+    if (!confirm('¿Quitar el acceso de administrador a ' + a.email + '? Su usuario seguirá existiendo, pero ya no podrá entrar al panel.')) return;
+    btn.disabled = true;
+    var res = await db.rpc('quitar_admin', { uid: a.user_id });
+    btn.disabled = false;
+    if (res.error) return show($('team-msg'), res.error.message, 'err');
+    show($('team-msg'), 'Se quitó el acceso a ' + a.email + '.', 'ok');
+    cargarAdmins();
+  }
 
   // ── Modo claro / oscuro (se comparte con la página principal) ──
   var root = document.documentElement, sistema = window.matchMedia('(prefers-color-scheme: dark)');

@@ -74,3 +74,79 @@ create policy "Admins cambian estado"
 insert into public.administradores (user_id)
 select id from auth.users where email = 'lblanco135@gmail.com'
 on conflict do nothing;
+
+-- ─────────────────────────────────────────────────────────────
+-- Funciones extra del panel (notas internas y gestión de administradores).
+-- Ejecuta este bloque una vez en SQL Editor.
+-- ─────────────────────────────────────────────────────────────
+
+-- Notas internas en cada solicitud (solo las ven los administradores).
+alter table public.solicitudes
+  add column if not exists notas text check (char_length(notas) <= 2000);
+grant update (estado, notas) on public.solicitudes to authenticated;
+
+-- Lista de administradores con su correo.
+create or replace function public.listar_admins()
+returns table (user_id uuid, email text, creado timestamptz)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.es_admin() then
+    raise exception 'Sin permisos de administrador';
+  end if;
+  return query
+    select a.user_id, u.email::text, a.creado
+    from public.administradores a
+    join auth.users u on u.id = a.user_id
+    order by a.creado;
+end;
+$$;
+
+-- Da acceso de administrador a un usuario que ya existe en Authentication → Users.
+create or replace function public.agregar_admin(correo text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  uid uuid;
+begin
+  if not public.es_admin() then
+    raise exception 'Sin permisos de administrador';
+  end if;
+  select id into uid from auth.users where lower(email) = lower(trim(correo));
+  if uid is null then
+    raise exception 'No existe ningún usuario con ese correo. Créalo primero en Authentication → Users.';
+  end if;
+  insert into public.administradores (user_id) values (uid) on conflict do nothing;
+end;
+$$;
+
+-- Quita el acceso de administrador (no puedes quitarte a ti mismo).
+create or replace function public.quitar_admin(uid uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.es_admin() then
+    raise exception 'Sin permisos de administrador';
+  end if;
+  if uid = auth.uid() then
+    raise exception 'No puedes quitarte el acceso a ti mismo.';
+  end if;
+  delete from public.administradores where user_id = uid;
+end;
+$$;
+
+revoke all on function public.listar_admins() from public, anon;
+revoke all on function public.agregar_admin(text) from public, anon;
+revoke all on function public.quitar_admin(uuid) from public, anon;
+grant execute on function public.listar_admins() to authenticated;
+grant execute on function public.agregar_admin(text) to authenticated;
+grant execute on function public.quitar_admin(uuid) to authenticated;

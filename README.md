@@ -25,4 +25,12 @@ Para activarlo una sola vez:
 2. En Supabase → **Authentication → Sign In / Providers**, desactiva *Allow new users to sign up* para que nadie más pueda registrarse.
 3. En `supabase.sql`, cambia `tu-correo@ejemplo.com` por tu correo y ejecuta el archivo completo en **SQL Editor**.
 
-Solo los usuarios que estén en la tabla `administradores` pueden ver las solicitudes. Para dar acceso a otra persona, crea su usuario y repite el último `insert` del SQL con su correo.
+Solo los usuarios que estén en la tabla `administradores` pueden ver las solicitudes.
+
+El panel tiene tres pestañas:
+
+- **Resumen**: totales por estado, solicitudes por semana, reparto por servicio y estado, y las nuevas que llevan más tiempo esperando.
+- **Solicitudes**: búsqueda, filtros por estado, servicio y fecha, orden, cambio de estado, notas internas, botones de correo/WhatsApp y exportación a CSV.
+- **Equipo**: dar o quitar acceso de administrador a otros usuarios.
+
+Para que funcionen las notas y la pestaña Equipo, ejecuta una vez en **SQL Editor** el bloque *Funciones extra del panel* de `supabase.sql`. Para dar acceso a alguien: créale el usuario en **Authentication → Users** y luego escribe su correo en la pestaña **Equipo**.
